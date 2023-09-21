@@ -2,7 +2,7 @@ const http = require("http");
 const path = require("path");
 const url = require("url");
 const { StringDecoder } = require('node:string_decoder');
-const router = require('../routes/headerRoutes');
+const routes = require('../routes/headerRoutes');
 const NotFoundError = require('../handler/routesHandlers/NotFoundError');
 
 const handle = (req, res) => {
@@ -29,7 +29,7 @@ const handle = (req, res) => {
         queryStringObjct,
         headerObject
     };
-    const getHandler = router[trimPath] ? router[trimPath] : NotFoundError;
+    const getHandler = routes[trimPath] ? routes[trimPath] : NotFoundError;
 
     getHandler(reqPropertices, (statusCode, payload) => {
         statusCode = typeof (statusCode) === 'number' ? statusCode : 500;
