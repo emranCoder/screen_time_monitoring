@@ -16,9 +16,7 @@ const handle = (req, res) => {
     //Post method - header object 
     const headerObject = req.headers;
 
-
     //Post method-- body data collect
-
     const reqPropertices = {
         parseUrl,
         path,
