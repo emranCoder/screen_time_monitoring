@@ -1,14 +1,9 @@
-// dependences
+// dependence
 const http = require("http");
 const handle = require('./helpers/HelperReqRes');
 const environment = require('./helpers/environment');
 const data = require('./library/data');
 
-//data folding
-data.read('test', 'fileName', (result) => {
-
-    console.log(JSON.parse('[' + result + ']').filter(data => data["id"] == "221-115-118"));
-})
 
 // object -> module scaffolding
 const app = {};

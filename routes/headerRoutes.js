@@ -1,9 +1,9 @@
 
 const { sampleHandler } = require('../handler/routesHandlers/SampleHandler');
-const { homeHanlder } = require('../handler/routesHandlers/homeHandler');
+const { userHandler } = require('../handler/routesHandlers/userHandler');
 
 const router = {
     sample: sampleHandler,
-    home: homeHanlder,
+    user: userHandler,
 }
 module.exports = router;

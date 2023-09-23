@@ -1,4 +1,4 @@
-//dependency
+//dependence
 const fs = require('fs');
 const path = require('path');
 
@@ -39,8 +39,8 @@ lib.create = (dir, file, data, callback) => {
 lib.read = (dir, file, callback) => {
     const fileName = fileDir + dir + '/' + file + '.json';
     fs.readFile(fileName, 'utf-8', (err, data) => {
-        if (err) return callback("Unable to read!");
-        callback(data);
+
+        callback(err, data);
     });
 }
 
@@ -49,22 +49,27 @@ lib.update = (dir, file, data, callback) => {
     // file directory
     const fileName = fileDir + dir + '/' + file + '.json';
     //open file
-    fs.open(fileName, 'a+', (err, fileDescriptor) => {
+    fs.open(fileName, 'r+', (err, fileDescriptor) => {
         //error through when file exist
         if (err && !fileDescriptor) return callback("Sorry the file doesn't exist!");
 
         //stringify data
-        const stringData = JSON.parse(data);
+        const stringData = JSON.stringify(data);
 
         //send data to file
-        fs.appendFile(fileDescriptor, ',' + stringData, (errors) => {
-            //error through when unable to write the file
-            if (errors) return callback("Unable to write the file!");
-            fs.close(fileDescriptor, (Error) => {
-                //error through when unable to close the file
-                if (Error) return callback("Sorry! We can't close the file.");
-                callback(false);
-            })
+        fs.ftruncate(fileDescriptor, (err) => {
+            if (err) return callback("Unable to to truncate.");
+
+
+            fs.writeFile(fileDescriptor, stringData, (error) => {
+                //error through when unable to write the file
+                if (error) return callback(404, { err: "Unable to write the file!" });
+                fs.close(fileDescriptor, (Error) => {
+                    //error through when unable to close the file
+                    if (Error) return callback("Sorry! We can't close the file.");
+                    callback(false);
+                });
+            });
         });
     });
 }

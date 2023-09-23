@@ -4,10 +4,12 @@ const environment = {};
 environment.staging = {
     port: 3000,
     envName: 'staging',
+    secretKey: ">r=nBXKRHy(?-MzZlzK01_NNZ]V<sI"
 }
 environment.production = {
     port: 5000,
     envName: 'production',
+    secretKey: "M~OwVX[teb+=9O{bWi<2R<m{8><0EQw"
 }
 
 //get the fire server env
