@@ -19,6 +19,21 @@ handler._check = {};
 
 //ROUTE 1: Get Users Details:  GET "/user?phone=number". Login required
 handler._check.get = (reqProp, callBack) => {
+    const query = typeof (reqProp.queryStringObject.id) === 'string' && reqProp.queryStringObject.id.length === 20 ? reqProp.queryStringObject.id : null;
+
+    const token = typeof (reqProp.headerObject.token) === 'string' && reqProp.headerObject.token.length === 20 ? reqProp.headerObject.token : null;
+
+    if (!query && !token) { return callBack(400, { error: "Bad Request!" }); }
+    //Get the user
+    data.read('checks', query, (err, data) => {
+        if (err && !data) { return callBack(404, { error: "The user not exist!" }); }
+        const checkData = parseJson(data);
+        tokenHandler._token.verify(token, checkData.userPhone, (err) => {
+            if (!err) { return callBack(500, { err: "Unable to validate!" }) };
+
+            callBack(200, checkData);
+        });
+    });
 };
 
 //ROUTE 2: POST To Add User:  POST "/user". NO Login required
@@ -84,6 +99,40 @@ handler._check.post = (reqProp, callBack) => {
 
 //ROUTE 3: PUT To Update the User Details:  POST "/user".Login required
 handler._check.put = (reqProp, callBack) => {
+    const id = typeof (reqProp.body.id) === 'string' && reqProp.body.id.length === 20 ? reqProp.body.id : null;
+
+    const protocol = typeof (reqProp.body.protocol) === "string" && ['http', 'https'].indexOf(reqProp.body.protocol) > -1 ? reqProp.body.protocol : false;
+    const url = typeof (reqProp.body.url) === "string" && reqProp.body.url.trim().length > 0 ? reqProp.body.url : false;
+    const method = typeof (reqProp.body.method) === "string" && ['get', 'post', 'put', 'delete'].indexOf(reqProp.body.method.toLowerCase()) > -1 ? reqProp.body.method : false;
+    const successCode = typeof (reqProp.body.successCodes) === "object" && reqProp.body.successCodes instanceof Array ? reqProp.body.successCodes : false;
+    const timeOut = typeof (reqProp.body.timeOut) === "number" && reqProp.body.timeOut % 1 == 0 && reqProp.body.timeOut >= 1 && reqProp.body.timeOut <= 5 ? reqProp.body.timeOut : false;
+
+    const token = typeof (reqProp.headerObject.token) === 'string' && reqProp.headerObject.token.length === 20 ? reqProp.headerObject.token : null;
+
+
+    if (!id && (!token && !protocol || !url || !method || !successCode || !timeOut)) { return callBack(500, { message: "Bad request!" }) }
+
+    //Get the user
+    data.read('checks', id, (err, data) => {
+        if (err && !data) { return callBack(404, { error: "The user not exist!" }); }
+        let checkData = parseJson(data);
+
+        tokenHandler._token.verify(token, checkData.userPhone, (err) => {
+            if (!err) { return callBack(403, { err: "Unable to validate!" }) };
+
+
+            if (protocol) { checkData.protocol = protocol }
+            if (url) { checkData.url = url }
+            if (method) { checkData.method = method }
+            if (successCode) { checkData.successCode = successCode }
+            if (timeOut) { checkData.timeOut = timeOut }
+            //update user data
+            data.update('checks', id, checkData, (err) => {
+                if (err) { return callBack(500, { err: "Server is down!" }) }
+                callBack(200, { message: "You got Update!" });
+            });
+        });
+    });
 
 };
 
