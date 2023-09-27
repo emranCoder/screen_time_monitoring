@@ -109,8 +109,14 @@ handler._check.put = (reqProp, callBack) => {
 
     const token = typeof (reqProp.headerObject.token) === 'string' && reqProp.headerObject.token.length === 20 ? reqProp.headerObject.token : null;
 
+    if (id && token) {
+        if (!protocol || !url || !method || !successCode || !timeOut) {
+            return callBack(500, { err: "Bad request!" });
+        }
+    } else {
+        return callBack(500, { err: "Bad request!" });
+    }
 
-    if (!id && (!token && !protocol || !url || !method || !successCode || !timeOut)) { return callBack(500, { message: "Bad request!" }) }
 
     //Get the user
     data.read('checks', id, (err, cData) => {
@@ -136,6 +142,42 @@ handler._check.put = (reqProp, callBack) => {
 
 //ROUTE 3: Delete The User Details:  POST "/user".Login required
 handler._check.delete = (reqProp, callBack) => {
+    const id = typeof (reqProp.body.id) === 'string' && reqProp.body.id.length === 20 ? reqProp.body.id : null;
+    const token = typeof (reqProp.headerObject.token) === 'string' && reqProp.headerObject.token.length === 20 ? reqProp.headerObject.token : null;
+    if (!id && !token) { return callBack(500, { message: "Bad request!" }) }
+
+    //Get the user
+    data.read('checks', id, (err, cData) => {
+        if (err && !cData) { return callBack(404, { error: "Check is not exits!" }); }
+        let checkData = parseJson(cData);
+        let phone = checkData.userPhone;
+        tokenHandler._token.verify(token, phone, (err) => {
+            if (!err) { return callBack(403, { err: "Unable to validate!" }) };
+
+            //delete check data
+            data.delete('checks', id, (err) => {
+                if (err) { return callBack(500, { err: "Server is down!" }) }
+                data.read('users', phone, (error, user) => {
+                    if (error && !user) { callBack(404, { error: "User Not found!" }); }
+                    const userData = parseJson(user);
+                    let userCheck = typeof (userData.check) == 'object' && userData.check instanceof Array ? userData.check : [];
+                    const haveCheckId = userCheck.indexOf(id);
+                    if (haveCheckId > -1) {
+                        userCheck.splice(haveCheckId, 1);
+                        userData.check = userCheck;
+
+                        data.update('users', phone, userData, (err) => {
+                            if (err) { return callBack(500, { err: "Server is down!" }) }
+                            callBack(200, { message: "Successfully removed!" });
+                        })
+
+                    } else { callBack(500, { err: "Server is down!" }) }
+                });
+
+            });
+        });
+    });
+
 
 };
 
