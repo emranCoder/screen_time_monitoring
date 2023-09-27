@@ -113,14 +113,12 @@ handler._check.put = (reqProp, callBack) => {
     if (!id && (!token && !protocol || !url || !method || !successCode || !timeOut)) { return callBack(500, { message: "Bad request!" }) }
 
     //Get the user
-    data.read('checks', id, (err, data) => {
-        if (err && !data) { return callBack(404, { error: "The user not exist!" }); }
-        let checkData = parseJson(data);
-
-        tokenHandler._token.verify(token, checkData.userPhone, (err) => {
+    data.read('checks', id, (err, cData) => {
+        if (err && !cData) { return callBack(404, { error: "The user not exist!" }); }
+        let checkData = parseJson(cData);
+        let phone = checkData.userPhone;
+        tokenHandler._token.verify(token, phone, (err) => {
             if (!err) { return callBack(403, { err: "Unable to validate!" }) };
-
-
             if (protocol) { checkData.protocol = protocol }
             if (url) { checkData.url = url }
             if (method) { checkData.method = method }
@@ -129,7 +127,7 @@ handler._check.put = (reqProp, callBack) => {
             //update user data
             data.update('checks', id, checkData, (err) => {
                 if (err) { return callBack(500, { err: "Server is down!" }) }
-                callBack(200, { message: "You got Update!" });
+                callBack(200, { message: "You got a update!" });
             });
         });
     });
